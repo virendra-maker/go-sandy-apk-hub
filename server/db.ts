@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, apks, categories, InsertAPK, InsertCategory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,57 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(categories);
+}
+
+export async function getApks() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(apks);
+}
+
+export async function getApkById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(apks).where(eq(apks.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createApk(data: InsertAPK) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(apks).values(data);
+  return result;
+}
+
+export async function updateApk(id: number, data: Partial<InsertAPK>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.update(apks).set(data).where(eq(apks.id, id));
+  return result;
+}
+
+export async function deleteApk(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.delete(apks).where(eq(apks.id, id));
+  return result;
+}
+
+export async function createCategory(data: InsertCategory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(categories).values(data);
+  return result;
+}
+
+export async function incrementDownloadCount(apkId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const apk = await getApkById(apkId);
+  if (!apk) throw new Error("APK not found");
+  return await updateApk(apkId, { downloadCount: (apk.downloadCount || 0) + 1 });
+}

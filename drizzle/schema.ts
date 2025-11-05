@@ -25,4 +25,38 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * APK categories table for organizing APKs
+ */
+export const categories = mysqlTable("categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = typeof categories.$inferInsert;
+
+/**
+ * APKs table for storing APK information
+ */
+export const apks = mysqlTable("apks", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  version: varchar("version", { length: 50 }).notNull(),
+  categoryId: int("categoryId"),
+  fileUrl: varchar("fileUrl", { length: 500 }).notNull(), // S3 URL
+  fileKey: varchar("fileKey", { length: 500 }).notNull(), // S3 key for reference
+  fileSize: int("fileSize"), // File size in bytes
+  photoUrl: varchar("photoUrl", { length: 500 }), // Thumbnail/preview image
+  photoKey: varchar("photoKey", { length: 500 }), // S3 key for photo
+  downloadCount: int("downloadCount").default(0),
+  createdBy: int("createdBy").notNull(), // Admin user ID
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type APK = typeof apks.$inferSelect;
+export type InsertAPK = typeof apks.$inferInsert;
